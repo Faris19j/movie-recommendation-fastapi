@@ -2,23 +2,116 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎬 Movie Recommendation System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #444;
+        }
+        form {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 250px;
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .recommendations {
+            margin-top: 40px;
+        }
+        .recommendations ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .recommendations li {
+            background-color: #fff;
+            margin: 10px auto;
+            padding: 10px;
+            width: 50%;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 1.2rem;
+        }
+        .no-recommendations {
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>🎬 Movie Recommender: Content + Collaborative Filtering</h1>
     <form method="post">
         <label for="movie">Enter a movie title:</label>
-        <input type="text" id="movie" name="movie" required>
+        <input type="text" id="movie" name="movie" placeholder="e.g., Toy Story (1995)" required>
         <button type="submit">Get Recommendations</button>
     </form>
 
-    {% if recommendations %}
-        <h2>Recommended Movies:</h2>
-        <ul>
-            {% for rec in recommendations %}
-                <li>{{ rec }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <div class="recommendations">
+        {% if recommendations %}
+            <h2>Recommended Movies:</h2>
+            <ul>
+                {% for rec in recommendations %}
+                    <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-recommendations">⚠️ No recommendations found. Try another title.</p>
+        {% endif %}
+        {% if reason %}
+    <h3>{{ reason }}</h3>
+{% endif %}
+
+    </div>
+
+    <div id="loader" style="display:none;">🔄 Loading recommendations...</div>
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', () => {
+            document.getElementById('loader').style.display = 'block';
+        });
+    </script>
+    
+    <script>
+        const movieTitles = ["Toy Story (1995)", "GoldenEye (1995)", "Four Rooms (1995)", "Get Shorty (1995)", "Copycat (1995)"];
+        const input = document.getElementById('movie');
+        input.addEventListener('input', function() {
+            let suggestions = movieTitles.filter(title => title.toLowerCase().startsWith(this.value.toLowerCase()));
+            if (suggestions.length === 1) {
+                this.value = suggestions[0];
+            }
+        });
+    </script>
+    
 </body>
 </html>

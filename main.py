@@ -57,4 +57,8 @@ async def home(request: Request):
 @app.post("/", response_class=HTMLResponse)
 async def get_recommendations(request: Request, movie: str = Form(...)):
     recommendations = recommend_movie(movie)
-    return templates.TemplateResponse("index.html", {"request": request, "recommendations": recommendations})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "recommendations": recommendations,
+        "reason": f"Because you liked {movie}, which shares similar genres or themes."
+    })
