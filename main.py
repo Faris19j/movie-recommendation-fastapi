@@ -6,47 +6,48 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load and convert the ratings data
+# 🚀 Load and process ratings data
 ratings = pd.read_csv('u.data', sep='\t', names=['userId', 'movieId', 'rating', 'timestamp'])
-ratings.to_csv('ratings.csv', index=False)
 print("Ratings data preview:\n", ratings.head())
 
-# Load and convert the movies data
+# 🎬 Load movie data with genres
 movies = pd.read_csv('u.item', sep='|', encoding='latin-1', names=[
     'movieId', 'title', 'release_date', 'video_release_date', 'IMDb_URL',
     'unknown', 'Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime',
     'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery',
     'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'
 ])
-
-# We only need movieId and title for this project
-movies[['movieId', 'title']].to_csv('movies.csv', index=False)
 print("Movies data preview:\n", movies[['movieId', 'title']].head())
 
-# Load the cleaned CSV files
-movies = pd.read_csv('movies.csv')
-ratings = pd.read_csv('ratings.csv')
+# ✅ Combine title and genres for better recommendations
+genre_columns = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime',
+                 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical',
+                 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 
-# Preprocess dataset
-movies['combined_features'] = movies['title']
+movies['genres'] = movies[genre_columns].apply(lambda x: ' '.join([genre for genre, val in zip(genre_columns, x) if val == 1]), axis=1)
+movies['combined_features'] = movies['title'] + " " + movies['genres']
 
-# Build recommendation engine
+# 🔍 Build recommendation engine
 tfidf = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf.fit_transform(movies['combined_features'])
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# Recommendation function
+# 🎯 Recommendation function
 def recommend_movie(title, cosine_sim=cosine_sim):
-    indices = pd.Series(movies.index, index=movies['title']).drop_duplicates()
-    idx = indices.get(title)
-    if idx is None:
-        return ["Movie not found."]
+    # Handle case-insensitive movie search
+    title = title.lower()
+    movies['lower_title'] = movies['title'].str.lower()
+
+    if title not in movies['lower_title'].values:
+        return ["❌ Movie not found. Please check the spelling."]
+
+    idx = movies[movies['lower_title'] == title].index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:6]
     movie_indices = [i[0] for i in sim_scores]
-    return movies['title'].iloc[movie_indices].tolist()
+    return movies[['title', 'genres']].iloc[movie_indices].to_dict(orient='records')
 
-# FastAPI setup
+# 🚀 FastAPI setup
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
@@ -60,5 +61,5 @@ async def get_recommendations(request: Request, movie: str = Form(...)):
     return templates.TemplateResponse("index.html", {
         "request": request,
         "recommendations": recommendations,
-        "reason": f"Because you liked {movie}, which shares similar genres or themes."
+        "reason": f"✨ Because you liked **{movie}**, which shares similar genres or themes!"
     })
