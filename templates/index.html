@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🎬 Movie Recommendation System</title>
+</head>
+<body>
+    <h1>🎬 Movie Recommender: Content + Collaborative Filtering</h1>
+    <form method="post">
+        <label for="movie">Enter a movie title:</label>
+        <input type="text" id="movie" name="movie" required>
+        <button type="submit">Get Recommendations</button>
+    </form>
+
+    {% if recommendations %}
+        <h2>Recommended Movies:</h2>
+        <ul>
+            {% for rec in recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
