@@ -32,20 +32,21 @@ tfidf = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf.fit_transform(movies['combined_features'])
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# 🎯 Recommendation function
+# 🎯 Recommendation functionfrom difflib import get_close_matches
+
 def recommend_movie(title, cosine_sim=cosine_sim):
-    # Handle case-insensitive movie search
-    title = title.lower()
-    movies['lower_title'] = movies['title'].str.lower()
-
-    if title not in movies['lower_title'].values:
+    indices = pd.Series(movies.index, index=movies['title']).drop_duplicates()
+    idx = indices.get(title)
+    if idx is None:
+        matches = get_close_matches(title, indices.index, n=3, cutoff=0.6)
+        if matches:
+            return [f"Did you mean: {', '.join(matches)}?"]
         return ["❌ Movie not found. Please check the spelling."]
-
-    idx = movies[movies['lower_title'] == title].index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:6]
     movie_indices = [i[0] for i in sim_scores]
     return movies[['title', 'genres']].iloc[movie_indices].to_dict(orient='records')
+
 
 # 🚀 FastAPI setup
 app = FastAPI()
